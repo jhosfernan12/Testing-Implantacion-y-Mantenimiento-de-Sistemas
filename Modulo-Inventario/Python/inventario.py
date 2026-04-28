@@ -1,67 +1,88 @@
-inventario = [
-    {"nombre": "lapiz", "precio": 1.5, "cantidad": 100},
-    {"nombre": "cuaderno", "precio": 5.0, "cantidad": 50}
-]
+# modulo inventario - version simple pero organizada
 
-def registrar_producto():
-    print("\n--- Registrar producto ---")
-    nombre = input("Nombre: ")
-    precio = float(input("Precio: "))
-    cantidad = int(input("Cantidad: "))
+class Producto:
+    def __init__(self, nombre, precio, cantidad):
+        self.nombre = nombre
+        self.precio = precio
+        self.cantidad = cantidad
 
-    producto = {
-        "nombre": nombre,
-        "precio": precio,
-        "cantidad": cantidad
-    }
+    def __str__(self):
+        return f"Nombre: {self.nombre} | Precio: {self.precio} | Cantidad: {self.cantidad}"
 
-    inventario.append(producto)
-    print("Producto registrado correctamente")
 
-def buscar_producto():
-    print("\n--- Buscar producto ---")
-    nombre = input("Ingrese nombre: ")
+class Inventario:
+    def __init__(self):
+        self.productos = []
 
-    for p in inventario:
-        if p["nombre"] == nombre:
-            print("Producto encontrado:")
-            print("Nombre:", p["nombre"])
-            print("Precio:", p["precio"])
-            print("Cantidad:", p["cantidad"])
+    # datos de prueba
+    def cargar_datos_prueba(self):
+        self.productos.append(Producto("Laptop", 2500, 5))
+        self.productos.append(Producto("Mouse", 50, 20))
+        self.productos.append(Producto("Teclado", 120, 10))
+
+    # funcionalidad 1
+    def registrar_producto(self):
+        nombre = input("Nombre: ")
+        
+        try:
+            precio = float(input("Precio: "))
+            cantidad = int(input("Cantidad: "))
+        except:
+            print("Error en los datos")
             return
 
-    print("Producto no encontrado")
+        nuevo = Producto(nombre, precio, cantidad)
+        self.productos.append(nuevo)
+        print("Producto registrado")
 
-def listar_productos():
-    print("\n--- Lista de productos ---")
-    
-    if len(inventario) == 0:
-        print("Inventario vacio")
-    else:
-        for i, p in enumerate(inventario, start=1):
-            print(i, "-", p["nombre"], "| Precio:", p["precio"], "| Cantidad:", p["cantidad"])
+    # funcionalidad 2
+    def buscar_producto(self):
+        nombre = input("Buscar nombre: ")
+
+        for p in self.productos:
+            if p.nombre == nombre:
+                print("Producto encontrado:")
+                print(p)
+                return
+
+        print("Producto no encontrado")
+
+    # funcionalidad 3
+    def listar_productos(self):
+        if len(self.productos) == 0:
+            print("Inventario vacio")
+            return
+
+        print("\nLista de productos:")
+        for i, p in enumerate(self.productos):
+            print(f"{i+1}. {p}")
+
 
 def menu():
+    inventario = Inventario()
+    inventario.cargar_datos_prueba()
+
     while True:
-        print("\n===== MENU INVENTARIO =====")
+        print("\n--- MENU INVENTARIO ---")
         print("1. Registrar producto")
         print("2. Buscar producto")
         print("3. Listar productos")
         print("4. Salir")
 
-        opcion = input("Seleccione una opcion: ")
+        opcion = input("Opcion: ")
 
         if opcion == "1":
-            registrar_producto()
+            inventario.registrar_producto()
         elif opcion == "2":
-            buscar_producto()
+            inventario.buscar_producto()
         elif opcion == "3":
-            listar_productos()
+            inventario.listar_productos()
         elif opcion == "4":
-            print("Saliendo del sistema...")
+            print("Saliendo...")
             break
         else:
             print("Opcion invalida")
+
 
 if __name__ == "__main__":
     menu()
