@@ -1,6 +1,10 @@
-inventario = []
+inventario = [
+    {"nombre": "lapiz", "precio": 1.5, "cantidad": 100},
+    {"nombre": "cuaderno", "precio": 5.0, "cantidad": 50}
+]
 
 def registrar_producto():
+    print("\n--- Registrar producto ---")
     nombre = input("Nombre: ")
     precio = float(input("Precio: "))
     cantidad = int(input("Cantidad: "))
@@ -12,33 +16,40 @@ def registrar_producto():
     }
 
     inventario.append(producto)
-    print("Producto registrado")
+    print("Producto registrado correctamente")
 
 def buscar_producto():
-    nombre = input("Buscar nombre: ")
+    print("\n--- Buscar producto ---")
+    nombre = input("Ingrese nombre: ")
 
     for p in inventario:
         if p["nombre"] == nombre:
-            print("Encontrado:", p)
+            print("Producto encontrado:")
+            print("Nombre:", p["nombre"])
+            print("Precio:", p["precio"])
+            print("Cantidad:", p["cantidad"])
             return
 
     print("Producto no encontrado")
 
 def listar_productos():
+    print("\n--- Lista de productos ---")
+    
     if len(inventario) == 0:
         print("Inventario vacio")
     else:
-        for p in inventario:
-            print(p)
+        for i, p in enumerate(inventario, start=1):
+            print(i, "-", p["nombre"], "| Precio:", p["precio"], "| Cantidad:", p["cantidad"])
 
 def menu():
     while True:
-        print("\n1. Registrar")
-        print("2. Buscar")
-        print("3. Listar")
+        print("\n===== MENU INVENTARIO =====")
+        print("1. Registrar producto")
+        print("2. Buscar producto")
+        print("3. Listar productos")
         print("4. Salir")
 
-        opcion = input("Opcion: ")
+        opcion = input("Seleccione una opcion: ")
 
         if opcion == "1":
             registrar_producto()
@@ -47,8 +58,10 @@ def menu():
         elif opcion == "3":
             listar_productos()
         elif opcion == "4":
+            print("Saliendo del sistema...")
             break
         else:
             print("Opcion invalida")
 
-menu()
+if __name__ == "__main__":
+    menu()
