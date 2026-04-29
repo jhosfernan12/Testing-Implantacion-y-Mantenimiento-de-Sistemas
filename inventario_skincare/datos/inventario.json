@@ -1,0 +1,47 @@
+[
+    {
+        "codigo": "P0001",
+        "nombre": "Limpiador Facial Suave",
+        "precio": 29.9,
+        "stock": 15,
+        "categoria": "Limpieza",
+        "stock_minimo": 5,
+        "fecha_registro": "2026-04-28 00:00:00"
+    },
+    {
+        "codigo": "P0002",
+        "nombre": "Serum Vitamina C",
+        "precio": 49.9,
+        "stock": 8,
+        "categoria": "Tratamiento",
+        "stock_minimo": 3,
+        "fecha_registro": "2026-04-28 00:00:00"
+    },
+    {
+        "codigo": "P0003",
+        "nombre": "Protector Solar Spf 50",
+        "precio": 39.9,
+        "stock": 20,
+        "categoria": "Protección",
+        "stock_minimo": 5,
+        "fecha_registro": "2026-04-28 00:00:00"
+    },
+    {
+        "codigo": "P0004",
+        "nombre": "Crema Hidratante",
+        "precio": 35.5,
+        "stock": 12,
+        "categoria": "Hidratación",
+        "stock_minimo": 4,
+        "fecha_registro": "2026-04-28 00:00:00"
+    },
+    {
+        "codigo": "P0005",
+        "nombre": "Tónico Facial",
+        "precio": 24.9,
+        "stock": 6,
+        "categoria": "Limpieza",
+        "stock_minimo": 3,
+        "fecha_registro": "2026-04-28 00:00:00"
+    }
+]
