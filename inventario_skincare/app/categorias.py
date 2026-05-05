@@ -17,11 +17,11 @@ class CategoriaRepositorioJSON:
         return [
             "General",
             "Limpieza",
-            "Hidratación",
+            "Hidratacion",
             "Tratamiento",
-            "Protección",
+            "Proteccion",
             "Mascarillas",
-            "Tónicos",
+            "Tonicos",
         ]
 
     def _ordenar(self, categorias: List[str]) -> List[str]:
@@ -85,3 +85,17 @@ class CategoriaRepositorioJSON:
             categorias.append(categoria)
             self.guardar_categorias(categorias)
         return categoria
+
+    def eliminar_categoria(self, categoria) -> bool:
+        categoria_normalizada = normalizar_texto(categoria)
+        if categoria_normalizada == "general":
+            raise ValueError("No se puede eliminar la categoria General.")
+
+        categorias = self.leer_categorias()
+        nuevas_categorias = [c for c in categorias if normalizar_texto(c) != categoria_normalizada]
+
+        if len(nuevas_categorias) == len(categorias):
+            raise ValueError(f"La categoria '{categoria}' no existe.")
+
+        self.guardar_categorias(nuevas_categorias)
+        return True

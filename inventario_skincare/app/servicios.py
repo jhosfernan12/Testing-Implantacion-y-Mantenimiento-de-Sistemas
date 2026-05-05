@@ -1,4 +1,8 @@
 from typing import List
+import json
+import os
+from pathlib import Path
+from datetime import datetime
 
 from app.categorias import CategoriaRepositorioJSON
 from app.modelos import Producto
@@ -21,13 +25,47 @@ class InventarioServicio:
     ):
         self.repositorio = repositorio or InventarioRepositorioJSON()
         self.categoria_repositorio = categoria_repositorio or CategoriaRepositorioJSON()
+        self._asegurar_historial()
+
+    def _asegurar_historial(self):
+        base = Path(__file__).resolve().parents[1]
+        self.ruta_historial = base / "datos" / "historial_ventas.json"
+        self.ruta_historial.parent.mkdir(parents=True, exist_ok=True)
+        if not self.ruta_historial.exists():
+            with open(self.ruta_historial, "w", encoding="utf-8") as f:
+                json.dump([], f)
+
+    def _registrar_venta(self, nombre_producto, cantidad, precio_unitario):
+        try:
+            with open(self.ruta_historial, "r", encoding="utf-8") as f:
+                historial = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            historial = []
+
+        historial.append({
+            "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "producto": nombre_producto,
+            "cantidad": cantidad,
+            "precio_unitario": precio_unitario,
+            "total": cantidad * precio_unitario
+        })
+
+        with open(self.ruta_historial, "w", encoding="utf-8") as f:
+            json.dump(historial, f, ensure_ascii=False, indent=4)
+
+    def obtener_historial_ventas(self):
+        try:
+            with open(self.ruta_historial, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (OSError, json.JSONDecodeError):
+            return []
 
     def registrar_producto(self, nombre, precio, stock, categoria="General", stock_minimo=5) -> Producto:
         nombre = validar_nombre_producto(nombre)
         precio = validar_precio(precio)
         stock = validar_entero_no_negativo(stock, "stock")
         categoria = validar_categoria(categoria)
-        stock_minimo = validar_entero_no_negativo(stock_minimo, "stock mínimo")
+        stock_minimo = validar_entero_no_negativo(stock_minimo, "stock minimo")
 
         productos = self.repositorio.leer_productos()
         nombre_normalizado = normalizar_texto(nombre)
@@ -67,12 +105,12 @@ class InventarioServicio:
         termino = str(termino or "").strip()
 
         if not termino:
-            raise ValueError("Ingrese un nombre, código o categoría para buscar.")
+            raise ValueError("Ingrese un nombre, codigo o categoria para buscar.")
 
         resultados = self.listar_productos(termino)
 
         if not resultados:
-            raise ValueError("No se encontró ningún producto con ese dato.")
+            raise ValueError("No se encontro ningun producto con ese dato.")
 
         return resultados
 
@@ -84,12 +122,30 @@ class InventarioServicio:
         self.repositorio.guardar_productos(productos)
         return productos[indice]
 
+    def aumentar_stock(self, codigo_o_nombre, cantidad) -> Producto:
+        cantidad = validar_entero_positivo(cantidad, "cantidad a aumentar")
+        productos = self.repositorio.leer_productos()
+        indice = self._buscar_indice_exacto(productos, codigo_o_nombre)
+        productos[indice].stock += cantidad
+        self.repositorio.guardar_productos(productos)
+        return productos[indice]
+
+    def disminuir_stock(self, codigo_o_nombre, cantidad) -> Producto:
+        cantidad = validar_entero_positivo(cantidad, "cantidad a disminuir")
+        productos = self.repositorio.leer_productos()
+        indice = self._buscar_indice_exacto(productos, codigo_o_nombre)
+        if productos[indice].stock < cantidad:
+            raise ValueError(f"No hay suficiente stock. Stock actual: {productos[indice].stock}")
+        productos[indice].stock -= cantidad
+        self.repositorio.guardar_productos(productos)
+        return productos[indice]
+
     def actualizar_producto(self, codigo_o_nombre, nombre, precio, stock, categoria="General", stock_minimo=5) -> Producto:
         nombre = validar_nombre_producto(nombre)
         precio = validar_precio(precio)
         stock = validar_entero_no_negativo(stock, "stock")
         categoria = validar_categoria(categoria)
-        stock_minimo = validar_entero_no_negativo(stock_minimo, "stock mínimo")
+        stock_minimo = validar_entero_no_negativo(stock_minimo, "stock minimo")
 
         productos = self.repositorio.leer_productos()
         indice = self._buscar_indice_exacto(productos, codigo_o_nombre)
@@ -115,7 +171,7 @@ class InventarioServicio:
         producto = productos[indice]
 
         if producto.stock > 0 and not forzar:
-            raise ValueError("El producto tiene stock. Para eliminarlo, confirme la eliminación forzada.")
+            raise ValueError("El producto tiene stock. Para eliminarlo, confirme la eliminacion forzada.")
 
         eliminado = productos.pop(indice)
         self.repositorio.guardar_productos(productos)
@@ -131,6 +187,7 @@ class InventarioServicio:
             raise ValueError("No hay stock suficiente para realizar la venta.")
 
         producto.stock -= cantidad
+        self._registrar_venta(producto.nombre, cantidad, producto.precio)
         self.repositorio.guardar_productos(productos)
         return producto
 
@@ -138,7 +195,7 @@ class InventarioServicio:
         productos = self.repositorio.leer_productos()
 
         if limite is not None and str(limite).strip() != "":
-            limite = validar_entero_no_negativo(limite, "límite de stock")
+            limite = validar_entero_no_negativo(limite, "limite de stock")
             return sorted([p for p in productos if p.stock <= limite], key=lambda p: (p.stock, p.nombre))
 
         return sorted([p for p in productos if p.stock <= p.stock_minimo], key=lambda p: (p.stock, p.nombre))
@@ -152,17 +209,29 @@ class InventarioServicio:
             if normalizar_texto(categoria) not in [normalizar_texto(c) for c in categorias]:
                 categorias.append(categoria)
 
-        self.categoria_repositorio.guardar_categorias(categorias)
+        if categorias:
+            self.categoria_repositorio.guardar_categorias(categorias)
+
         return self.categoria_repositorio.leer_categorias()
 
     def agregar_categoria(self, categoria) -> str:
         return self.categoria_repositorio.agregar_categoria(categoria)
 
+    def eliminar_categoria(self, categoria) -> bool:
+        productos = self.repositorio.leer_productos()
+        categoria_normalizada = normalizar_texto(categoria)
+
+        for producto in productos:
+            if normalizar_texto(producto.categoria) == categoria_normalizada:
+                raise ValueError(f"No se puede eliminar la categoria '{categoria}' porque hay productos que la usan.")
+
+        return self.categoria_repositorio.eliminar_categoria(categoria)
+
     def _buscar_indice_exacto(self, productos: List[Producto], codigo_o_nombre) -> int:
         dato = str(codigo_o_nombre or "").strip()
 
         if not dato:
-            raise ValueError("Seleccione o escriba el nombre/código del producto.")
+            raise ValueError("Seleccione o escriba el nombre/codigo del producto.")
 
         dato_normalizado = normalizar_texto(dato)
         coincidencias = []
@@ -175,6 +244,6 @@ class InventarioServicio:
             raise ValueError("El producto no existe o no fue seleccionado correctamente.")
 
         if len(coincidencias) > 1:
-            raise ValueError("Hay más de una coincidencia. Use el código exacto del producto.")
+            raise ValueError("Hay mas de una coincidencia. Use el codigo exacto del producto.")
 
         return coincidencias[0]

@@ -1,5 +1,7 @@
+import csv
 import tkinter as tk
-from tkinter import messagebox, simpledialog, ttk
+from tkinter import filedialog, messagebox, simpledialog, ttk
+from datetime import datetime
 
 from app.servicios import InventarioServicio
 
@@ -14,6 +16,7 @@ class InventarioApp:
 
         self.servicio = InventarioServicio()
         self.codigo_seleccionado = None
+        self.ventana_historial = None
 
         self.colores = {
             "fondo": "#fff4f8",
@@ -34,6 +37,7 @@ class InventarioApp:
             "peligro_hover": "#bd4d6c",
             "exito": "#507f67",
             "advertencia": "#9a6a00",
+            "amarillo_pastel": "#fff3b0",
         }
 
         self.var_nombre = tk.StringVar()
@@ -140,12 +144,11 @@ class InventarioApp:
 
         tk.Label(
             contenido,
-            text="Módulo de Inventario Skincare",
+            text="Modulo de Inventario Skincare",
             bg=self.colores["rosa_pastel"],
             fg=self.colores["rosa_oscuro"],
             font=("Segoe UI", 24, "bold"),
         ).pack(anchor="w")
-
 
     def _crear_barra_acciones(self, padre):
         barra = tk.Frame(
@@ -156,17 +159,16 @@ class InventarioApp:
         )
         barra.pack(fill="x", pady=(12, 0))
 
-        for columna in range(7):
+        for columna in range(6):
             barra.columnconfigure(columna, weight=1, uniform="acciones")
 
         botones = [
-            ("Nuevo producto", self._limpiar_formulario, self.colores["panel_suave"], self.colores["rosa_oscuro"]),
-            ("Registrar producto", self._registrar_producto, self.colores["rosa_boton"], "white"),
-            ("Actualizar producto", self._actualizar_producto, self.colores["rosa_claro"], self.colores["rosa_oscuro"]),
-            ("Vender", self._vender_producto, "#ffdce9", self.colores["rosa_oscuro"]),
-            ("Eliminar", self._eliminar_producto, self.colores["peligro"], "white"),
-            ("Stock bajo", self._mostrar_stock_bajo, "#ffe7ba", self.colores["rosa_oscuro"]),
-            ("Listar todo", self._listar_productos, self.colores["panel_suave"], self.colores["rosa_oscuro"]),
+            (" ✨ Nuevo", self._limpiar_formulario, self.colores["panel_suave"], self.colores["rosa_oscuro"]),
+            (" 🛒 Vender", self._vender_producto, "#ffdce9", self.colores["rosa_oscuro"]),
+            (" 🗑️ Eliminar", self._eliminar_producto, self.colores["peligro"], "white"),
+            (" 📁 Exportar CSV", self._exportar_csv, self.colores["exito"], "white"),
+            (" ⚙️ Ajustar Stock [+/-]", self._ajustar_stock, self.colores["panel_suave"], self.colores["rosa_oscuro"]),
+            (" 📊 Historial", self._ver_historial, self.colores["rosa_claro"], self.colores["rosa_oscuro"]),
         ]
 
         for columna, (texto, comando, fondo, color_texto) in enumerate(botones):
@@ -199,19 +201,18 @@ class InventarioApp:
             font=("Segoe UI", 16, "bold"),
         ).pack(anchor="w", padx=20, pady=(18, 4))
 
-
         self.entrada_nombre = self._agregar_campo(panel, "Nombre del producto", self.var_nombre)
         self.entrada_precio = self._agregar_campo(panel, "Precio", self.var_precio)
         self.entrada_stock = self._agregar_campo(panel, "Stock", self.var_stock)
         self._agregar_combo_categoria(panel)
-        self.entrada_stock_minimo = self._agregar_campo(panel, "Stock mínimo", self.var_stock_minimo)
+        self.entrada_stock_minimo = self._agregar_campo(panel, "Stock minimo", self.var_stock_minimo)
 
         botones = tk.Frame(panel, bg=self.colores["panel"])
         botones.pack(fill="x", padx=20, pady=(14, 8))
 
         self._crear_boton(
             botones,
-            "Registrar producto",
+            " 📝 Registrar",
             self._registrar_producto,
             self.colores["rosa_boton"],
             grande=True,
@@ -219,7 +220,7 @@ class InventarioApp:
 
         self._crear_boton(
             botones,
-            "Actualizar producto",
+            " 🔄 Actualizar",
             self._actualizar_producto,
             self.colores["rosa_claro"],
             self.colores["rosa_oscuro"],
@@ -230,26 +231,25 @@ class InventarioApp:
         fila_secundaria_1.pack(fill="x", pady=(0, 6))
         self._crear_boton(
             fila_secundaria_1,
-            "Vender",
+            " 🛒 Vender",
             self._vender_producto,
             "#ffdce9",
             self.colores["rosa_oscuro"],
         ).pack(side="left", fill="x", expand=True, padx=(0, 5))
         self._crear_boton(
             fila_secundaria_1,
-            "Eliminar",
+            " 🗑️ Eliminar",
             self._eliminar_producto,
             self.colores["peligro"],
         ).pack(side="left", fill="x", expand=True, padx=(5, 0))
 
         self._crear_boton(
             botones,
-            "Limpiar campos",
+            " 🧹 Limpiar",
             self._limpiar_formulario,
             self.colores["panel_suave"],
             self.colores["rosa_oscuro"],
         ).pack(fill="x", pady=(2, 0))
-
 
     def _crear_panel_tabla(self, padre):
         panel = tk.Frame(padre, bg=self.colores["fondo"])
@@ -275,9 +275,9 @@ class InventarioApp:
         self.entrada_busqueda.pack(side="left", fill="x", expand=True, padx=(0, 8), pady=10, ipady=2)
         self.entrada_busqueda.bind("<Return>", lambda _event: self._buscar_producto())
 
-        self._crear_boton(barra_busqueda, "Buscar", self._buscar_producto, self.colores["rosa_boton"]).pack(side="left", padx=4, pady=10)
-        self._crear_boton(barra_busqueda, "Listar todo", self._listar_productos, self.colores["panel_suave"], self.colores["rosa_oscuro"]).pack(side="left", padx=4, pady=10)
-        self._crear_boton(barra_busqueda, "Stock bajo", self._mostrar_stock_bajo, "#ffdeeb", self.colores["rosa_oscuro"]).pack(side="left", padx=(4, 14), pady=10)
+        self._crear_boton(barra_busqueda, " 🔍 Buscar", self._buscar_producto, self.colores["rosa_boton"]).pack(side="left", padx=4, pady=10)
+        self._crear_boton(barra_busqueda, " ⚠️ Stock bajo", self._mostrar_stock_bajo, self.colores["amarillo_pastel"], self.colores["rosa_oscuro"]).pack(side="left", padx=4, pady=10)
+        self._crear_boton(barra_busqueda, " 📋 Listar todo", self._listar_productos, self.colores["panel_suave"], self.colores["rosa_oscuro"]).pack(side="left", padx=4, pady=10)
 
         marco_tabla = tk.Frame(
             panel,
@@ -289,12 +289,12 @@ class InventarioApp:
 
         columnas = ("codigo", "nombre", "precio", "stock", "categoria", "stock_minimo", "estado")
         self.tabla = ttk.Treeview(marco_tabla, columns=columnas, show="headings")
-        self.tabla.heading("codigo", text="Código")
+        self.tabla.heading("codigo", text="Codigo")
         self.tabla.heading("nombre", text="Nombre")
         self.tabla.heading("precio", text="Precio")
         self.tabla.heading("stock", text="Stock")
-        self.tabla.heading("categoria", text="Categoría")
-        self.tabla.heading("stock_minimo", text="Stock mín.")
+        self.tabla.heading("categoria", text="Categoria")
+        self.tabla.heading("stock_minimo", text="Stock min.")
         self.tabla.heading("estado", text="Estado")
 
         self.tabla.column("codigo", width=80, anchor="center", stretch=False)
@@ -307,7 +307,7 @@ class InventarioApp:
 
         self.tabla.tag_configure("normal", background="#ffffff")
         self.tabla.tag_configure("par", background=self.colores["panel_muy_suave"])
-        self.tabla.tag_configure("bajo", background="#fff0d6", foreground=self.colores["advertencia"])
+        self.tabla.tag_configure("bajo", background=self.colores["amarillo_pastel"])
         self.tabla.tag_configure("agotado", background="#ffe1ea", foreground=self.colores["peligro"])
 
         scroll_y = ttk.Scrollbar(marco_tabla, orient="vertical", command=self.tabla.yview)
@@ -347,7 +347,7 @@ class InventarioApp:
 
         tk.Label(
             marco,
-            text="Categoría",
+            text="Categoria",
             bg=self.colores["panel"],
             fg=self.colores["rosa_oscuro"],
             font=("Segoe UI", 9, "bold"),
@@ -366,13 +366,21 @@ class InventarioApp:
 
         self._crear_boton(
             fila,
-            "+ categoría",
+            " +",
             self._agregar_nueva_categoria,
             self.colores["panel_suave"],
             self.colores["rosa_oscuro"],
-            ancho=None,
+            ancho=3,
         ).pack(side="left", padx=(8, 0), ipady=1)
 
+        self._crear_boton(
+            fila,
+            " -",
+            self._eliminar_categoria,
+            self.colores["peligro"],
+            "white",
+            ancho=3,
+        ).pack(side="left", padx=(4, 0), ipady=1)
 
     def _crear_boton(self, padre, texto, comando, fondo, texto_color="white", grande=False, ancho=None):
         boton = tk.Button(
@@ -424,14 +432,40 @@ class InventarioApp:
 
     def _agregar_nueva_categoria(self):
         try:
-            nueva = simpledialog.askstring("Nueva categoría", "Ingrese el nombre de la nueva categoría:")
+            nueva = simpledialog.askstring("Nueva categoria", "Ingrese el nombre de la nueva categoria:")
             if nueva is None:
                 return
 
             categoria = self.servicio.agregar_categoria(nueva)
             self._cargar_categorias()
             self.var_categoria.set(categoria)
-            self._mostrar_mensaje(f"Categoría agregada: {categoria}")
+            self._mostrar_mensaje(f"Categoria agregada: {categoria}")
+        except ValueError as error:
+            self._mostrar_error(error)
+
+    def _eliminar_categoria(self):
+        try:
+            categoria_actual = self.var_categoria.get()
+            if not categoria_actual or categoria_actual == "General":
+                raise ValueError("No se puede eliminar la categoria 'General'.")
+
+            productos = self.servicio.listar_productos()
+            productos_con_categoria = [p for p in productos if p.categoria == categoria_actual]
+
+            if productos_con_categoria:
+                raise ValueError(f"No se puede eliminar '{categoria_actual}' porque hay {len(productos_con_categoria)} productos con esta categoria.")
+
+            confirmar = messagebox.askyesno(
+                "Eliminar categoria",
+                f"Esta seguro de eliminar la categoria '{categoria_actual}'?"
+            )
+            if not confirmar:
+                return
+
+            self.servicio.eliminar_categoria(categoria_actual)
+            self._cargar_categorias()
+            self.var_categoria.set("General")
+            self._mostrar_mensaje(f"Categoria '{categoria_actual}' eliminada.")
         except ValueError as error:
             self._mostrar_error(error)
 
@@ -439,7 +473,7 @@ class InventarioApp:
         self.lbl_estado.config(text=texto)
 
     def _mostrar_error(self, error):
-        messagebox.showerror("Validación", str(error))
+        messagebox.showerror("Validacion", str(error))
         self._mostrar_mensaje("Revise los datos ingresados.")
 
     def _mostrar_productos(self, productos):
@@ -472,7 +506,6 @@ class InventarioApp:
                 tags=(etiqueta,),
             )
 
-        self._cargar_categorias()
         self._mostrar_mensaje(f"Productos mostrados: {len(productos)}")
 
     def _listar_productos(self):
@@ -521,7 +554,7 @@ class InventarioApp:
                 self.var_stock_minimo.get(),
             )
             messagebox.showinfo(
-                "Actualización correcta",
+                "Actualizacion correcta",
                 f"Producto actualizado: {producto.nombre}\nPrecio: S/ {producto.precio:.2f}\nStock: {producto.stock}",
             )
             self.codigo_seleccionado = producto.codigo
@@ -558,8 +591,8 @@ class InventarioApp:
             except ValueError as error:
                 if "tiene stock" in str(error).lower():
                     confirmar = messagebox.askyesno(
-                        "Confirmar eliminación",
-                        "El producto todavía tiene stock. ¿Desea eliminarlo de todos modos?",
+                        "Confirmar eliminacion",
+                        "El producto todavia tiene stock. Desea eliminarlo de todos modos?",
                     )
                     if not confirmar:
                         return
@@ -567,7 +600,7 @@ class InventarioApp:
                 else:
                     raise
 
-            messagebox.showinfo("Eliminación correcta", f"Producto eliminado: {producto.nombre}")
+            messagebox.showinfo("Eliminacion correcta", f"Producto eliminado: {producto.nombre}")
             self._limpiar_formulario()
             self._listar_productos()
         except ValueError as error:
@@ -619,3 +652,129 @@ class InventarioApp:
         self.tabla.selection_remove(self.tabla.selection())
         self.entrada_nombre.focus_set()
         self._mostrar_mensaje("Campos listos para registrar un producto.")
+
+    def _exportar_csv(self):
+        try:
+            productos = self.servicio.listar_productos()
+            if not productos:
+                messagebox.showwarning("Exportar CSV", "No hay productos para exportar.")
+                return
+
+            fecha = datetime.now().strftime("%Y%m%d_%H%M%S")
+            nombre_archivo = filedialog.asksaveasfilename(
+                defaultextension=".csv",
+                filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+                initialfile=f"inventario_{fecha}.csv"
+            )
+
+            if not nombre_archivo:
+                return
+
+            with open(nombre_archivo, "w", newline="", encoding="utf-8-sig") as archivo_csv:
+                escritor = csv.writer(archivo_csv)
+                escritor.writerow(["Codigo", "Nombre", "Precio", "Stock", "Categoria", "Stock Minimo", "Fecha Registro"])
+                for producto in productos:
+                    escritor.writerow([
+                        producto.codigo,
+                        producto.nombre,
+                        f"{producto.precio:.2f}",
+                        producto.stock,
+                        producto.categoria,
+                        producto.stock_minimo,
+                        producto.fecha_registro
+                    ])
+
+            self._mostrar_mensaje(f"Exportacion completada: {nombre_archivo}")
+            messagebox.showinfo("Exportar CSV", f"Archivo exportado correctamente.\n{nombre_archivo}")
+        except Exception as error:
+            self._mostrar_error(error)
+
+    def _ajustar_stock(self):
+        try:
+            clave = self.codigo_seleccionado or self.var_nombre.get()
+            if not str(clave or "").strip():
+                raise ValueError("Seleccione un producto para ajustar stock.")
+
+            operacion = simpledialog.askstring("Ajustar Stock", "Ingrese +cantidad para aumentar o -cantidad para disminuir:\nEjemplo: +5 o -3")
+            if operacion is None:
+                return
+
+            operacion = operacion.strip()
+            if not operacion:
+                raise ValueError("Ingrese una operacion valida.")
+
+            if operacion.startswith("+"):
+                cantidad = int(operacion[1:])
+                if cantidad <= 0:
+                    raise ValueError("La cantidad debe ser positiva.")
+                producto = self.servicio.aumentar_stock(clave, cantidad)
+                messagebox.showinfo("Ajuste completado", f"Stock aumentado en {cantidad}. Nuevo stock: {producto.stock}")
+            elif operacion.startswith("-"):
+                cantidad = int(operacion[1:])
+                if cantidad <= 0:
+                    raise ValueError("La cantidad debe ser positiva.")
+                producto = self.servicio.disminuir_stock(clave, cantidad)
+                messagebox.showinfo("Ajuste completado", f"Stock disminuido en {cantidad}. Nuevo stock: {producto.stock}")
+            else:
+                raise ValueError("Use + para aumentar o - para disminuir. Ejemplo: +5")
+
+            self._listar_productos()
+            self._seleccionar_por_codigo(producto.codigo)
+        except ValueError as error:
+            self._mostrar_error(error)
+
+    def _ver_historial(self):
+        if self.ventana_historial is not None and self.ventana_historial.winfo_exists():
+            self.ventana_historial.lift()
+            self.ventana_historial.focus_force()
+            return
+
+        try:
+            historial = self.servicio.obtener_historial_ventas()
+            productos = self.servicio.listar_productos()
+
+            self.ventana_historial = tk.Toplevel(self.root)
+            self.ventana_historial.title("Historial de Ventas")
+            self.ventana_historial.geometry("900x600")
+            self.ventana_historial.configure(bg=self.colores["fondo"])
+            self.ventana_historial.protocol("WM_DELETE_WINDOW", self._cerrar_historial)
+
+            frame = tk.Frame(self.ventana_historial, bg=self.colores["panel"])
+            frame.pack(fill="both", expand=True, padx=15, pady=15)
+
+            texto = tk.Text(frame, wrap="none", font=("Consolas", 10), bg=self.colores["panel_muy_suave"], fg=self.colores["texto"])
+            scroll_y = tk.Scrollbar(frame, orient="vertical", command=texto.yview)
+            scroll_x = tk.Scrollbar(frame, orient="horizontal", command=texto.xview)
+            texto.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
+
+            texto.pack(side="left", fill="both", expand=True)
+            scroll_y.pack(side="right", fill="y")
+            scroll_x.pack(side="bottom", fill="x")
+
+            contenido = "HISTORIAL DE VENTAS\n"
+            contenido += "=" * 80 + "\n\n"
+
+            if historial:
+                for venta in historial[-50:]:
+                    contenido += f"Fecha: {venta['fecha']}\n"
+                    contenido += f"Producto: {venta['producto']}\n"
+                    contenido += f"Cantidad: {venta['cantidad']} | Precio: S/ {venta['precio_unitario']:.2f} | Total: S/ {venta['total']:.2f}\n"
+                    contenido += "-" * 80 + "\n"
+            else:
+                contenido += "No hay ventas registradas aun.\n"
+
+            contenido += "\n" + "=" * 80 + "\n"
+            contenido += "RESUMEN DE INVENTARIO ACTUAL\n"
+            contenido += "=" * 80 + "\n\n"
+            contenido += f"Total de productos en inventario: {len(productos)}\n"
+            contenido += f"Valor total del inventario: S/ {sum(p.precio * p.stock for p in productos):.2f}\n"
+
+            texto.insert("1.0", contenido)
+            texto.configure(state="disabled")
+        except Exception as error:
+            self._mostrar_error(error)
+
+    def _cerrar_historial(self):
+        if self.ventana_historial:
+            self.ventana_historial.destroy()
+            self.ventana_historial = None

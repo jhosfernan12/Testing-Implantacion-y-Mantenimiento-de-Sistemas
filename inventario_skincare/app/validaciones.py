@@ -29,10 +29,10 @@ def limpiar_texto(valor, campo: str, max_len: int, permitir_vacio: bool = False)
     texto = re.sub(r"\s+", " ", texto)
 
     if not texto and not permitir_vacio:
-        raise ValueError(f"El campo {campo} no puede estar vacío.")
+        raise ValueError(f"El campo {campo} no puede estar vacio.")
 
     if len(texto) > max_len:
-        raise ValueError(f"El campo {campo} no puede tener más de {max_len} caracteres.")
+        raise ValueError(f"El campo {campo} no puede tener mas de {max_len} caracteres.")
 
     return texto
 
@@ -40,42 +40,41 @@ def limpiar_texto(valor, campo: str, max_len: int, permitir_vacio: bool = False)
 def validar_nombre_producto(nombre) -> str:
     nombre = limpiar_texto(nombre, "nombre", MAX_NOMBRE)
 
-    # Permite letras, números, espacios y signos comunes en productos.
     if not re.fullmatch(r"[A-Za-zÁÉÍÓÚáéíóúÑñÜü0-9 .,'°#%()+\-/]+", nombre):
         raise ValueError("El nombre contiene caracteres no permitidos.")
 
     if not re.search(r"[A-Za-zÁÉÍÓÚáéíóúÑñÜü0-9]", nombre):
-        raise ValueError("El nombre debe tener letras o números.")
+        raise ValueError("El nombre debe tener letras o numeros.")
 
     return nombre.title()
 
 
 def validar_categoria(categoria) -> str:
-    categoria = limpiar_texto(categoria, "categoría", MAX_CATEGORIA, permitir_vacio=True)
+    categoria = limpiar_texto(categoria, "categoria", MAX_CATEGORIA, permitir_vacio=True)
     if not categoria:
         return "General"
 
     if not re.fullmatch(r"[A-Za-zÁÉÍÓÚáéíóúÑñÜü0-9 .,'()+\-/]+", categoria):
-        raise ValueError("La categoría contiene caracteres no permitidos.")
+        raise ValueError("La categoria contiene caracteres no permitidos.")
 
     return categoria.title()
 
 
 def validar_precio(precio) -> float:
     if precio is None:
-        raise ValueError("El precio no puede estar vacío.")
+        raise ValueError("El precio no puede estar vacio.")
 
     texto = str(precio).strip().replace(",", ".")
     if not texto:
-        raise ValueError("El precio no puede estar vacío.")
+        raise ValueError("El precio no puede estar vacio.")
 
     try:
         valor = Decimal(texto)
     except InvalidOperation:
-        raise ValueError("El precio debe ser un número válido.")
+        raise ValueError("El precio debe ser un numero valido.")
 
     if not math.isfinite(float(valor)):
-        raise ValueError("El precio debe ser un número válido.")
+        raise ValueError("El precio debe ser un numero valido.")
 
     if valor <= 0:
         raise ValueError("El precio debe ser mayor que cero.")
@@ -89,14 +88,14 @@ def validar_precio(precio) -> float:
 
 def validar_entero_no_negativo(valor, campo: str, maximo: int = MAX_STOCK) -> int:
     if valor is None:
-        raise ValueError(f"El campo {campo} no puede estar vacío.")
+        raise ValueError(f"El campo {campo} no puede estar vacio.")
 
     texto = str(valor).strip()
     if not texto:
-        raise ValueError(f"El campo {campo} no puede estar vacío.")
+        raise ValueError(f"El campo {campo} no puede estar vacio.")
 
     if not re.fullmatch(r"\d+", texto):
-        raise ValueError(f"El campo {campo} debe ser un número entero positivo o cero.")
+        raise ValueError(f"El campo {campo} debe ser un numero entero positivo o cero.")
 
     numero = int(texto)
     if numero < 0:

@@ -18,9 +18,9 @@ class InventarioRepositorioJSON:
         return [
             Producto("P0001", "Limpiador Facial Suave", 29.90, 15, "Limpieza", 5),
             Producto("P0002", "Serum Vitamina C", 49.90, 8, "Tratamiento", 3),
-            Producto("P0003", "Protector Solar Spf 50", 39.90, 20, "Protección", 5),
-            Producto("P0004", "Crema Hidratante", 35.50, 12, "Hidratación", 4),
-            Producto("P0005", "Tónico Facial", 24.90, 6, "Limpieza", 3),
+            Producto("P0003", "Protector Solar Spf 50", 39.90, 20, "Proteccion", 5),
+            Producto("P0004", "Crema Hidratante", 35.50, 12, "Hidratacion", 4),
+            Producto("P0005", "Tonico Facial", 24.90, 6, "Limpieza", 3),
         ]
 
     def _asegurar_archivo(self):
@@ -56,7 +56,6 @@ class InventarioRepositorioJSON:
                 if producto.codigo and producto.nombre:
                     productos.append(producto)
             except (TypeError, ValueError):
-                # Si alguien dañó una fila del JSON, se ignora esa fila y el programa sigue funcionando.
                 continue
         return productos
 
