@@ -484,6 +484,7 @@ class InventarioApp:
             if producto.stock == 0:
                 estado = "Agotado"
                 etiqueta = "agotado"
+            # MEJORA: stock <= stock_minimo ya es alerta de reposicion
             elif producto.stock <= producto.stock_minimo:
                 estado = "Stock bajo"
                 etiqueta = "bajo"
@@ -586,6 +587,14 @@ class InventarioApp:
             if not str(clave or "").strip():
                 raise ValueError("Seleccione un producto para eliminar.")
 
+            # MEJORA: confirmacion antes de eliminar
+            confirmar = messagebox.askyesno(
+                "Confirmar eliminacion",
+                "Esta seguro de eliminar este producto?",
+            )
+            if not confirmar:
+                return
+
             try:
                 producto = self.servicio.eliminar_producto(clave)
             except ValueError as error:
@@ -672,8 +681,17 @@ class InventarioApp:
 
             with open(nombre_archivo, "w", newline="", encoding="utf-8-sig") as archivo_csv:
                 escritor = csv.writer(archivo_csv)
-                escritor.writerow(["Codigo", "Nombre", "Precio", "Stock", "Categoria", "Stock Minimo", "Fecha Registro"])
+                # MEJORA: incluir columna Estado en el CSV
+                escritor.writerow(["Codigo", "Nombre", "Precio", "Stock", "Categoria", "Stock Minimo", "Estado", "Fecha Registro"])
                 for producto in productos:
+                    # MEJORA: mismo criterio para estado en CSV
+                    if producto.stock == 0:
+                        estado = "Agotado"
+                    elif producto.stock <= producto.stock_minimo:
+                        estado = "Stock bajo"
+                    else:
+                        estado = "Disponible"
+                    
                     escritor.writerow([
                         producto.codigo,
                         producto.nombre,
@@ -681,6 +699,7 @@ class InventarioApp:
                         producto.stock,
                         producto.categoria,
                         producto.stock_minimo,
+                        estado,
                         producto.fecha_registro
                     ])
 
@@ -688,6 +707,7 @@ class InventarioApp:
             messagebox.showinfo("Exportar CSV", f"Archivo exportado correctamente.\n{nombre_archivo}")
         except Exception as error:
             self._mostrar_error(error)
+
 
     def _ajustar_stock(self):
         try:
@@ -704,13 +724,21 @@ class InventarioApp:
                 raise ValueError("Ingrese una operacion valida.")
 
             if operacion.startswith("+"):
-                cantidad = int(operacion[1:])
+                try:
+                    cantidad = int(operacion[1:])
+                except ValueError:
+                    raise ValueError("Ingrese un numero entero valido.")
                 if cantidad <= 0:
                     raise ValueError("La cantidad debe ser positiva.")
+                if cantidad > 1000000:
+                    raise ValueError("La cantidad no puede superar 1,000,000.")
                 producto = self.servicio.aumentar_stock(clave, cantidad)
                 messagebox.showinfo("Ajuste completado", f"Stock aumentado en {cantidad}. Nuevo stock: {producto.stock}")
             elif operacion.startswith("-"):
-                cantidad = int(operacion[1:])
+                try:
+                    cantidad = int(operacion[1:])
+                except ValueError:
+                    raise ValueError("Ingrese un numero entero valido.")
                 if cantidad <= 0:
                     raise ValueError("La cantidad debe ser positiva.")
                 producto = self.servicio.disminuir_stock(clave, cantidad)
@@ -757,7 +785,7 @@ class InventarioApp:
             if historial:
                 for venta in historial[-50:]:
                     contenido += f"Fecha: {venta['fecha']}\n"
-                    contenido += f"Producto: {venta['producto']}\n"
+                    contenido += f"Codigo: {venta['codigo']} | Producto: {venta['producto']}\n"
                     contenido += f"Cantidad: {venta['cantidad']} | Precio: S/ {venta['precio_unitario']:.2f} | Total: S/ {venta['total']:.2f}\n"
                     contenido += "-" * 80 + "\n"
             else:

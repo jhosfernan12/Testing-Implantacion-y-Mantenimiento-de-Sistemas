@@ -92,10 +92,18 @@ class CategoriaRepositorioJSON:
             raise ValueError("No se puede eliminar la categoria General.")
 
         categorias = self.leer_categorias()
-        nuevas_categorias = [c for c in categorias if normalizar_texto(c) != categoria_normalizada]
-
-        if len(nuevas_categorias) == len(categorias):
+        
+        # Validar que la categoria exista
+        categoria_existe = False
+        for c in categorias:
+            if normalizar_texto(c) == categoria_normalizada:
+                categoria_existe = True
+                break
+        
+        if not categoria_existe:
             raise ValueError(f"La categoria '{categoria}' no existe.")
+        
+        nuevas_categorias = [c for c in categorias if normalizar_texto(c) != categoria_normalizada]
 
         self.guardar_categorias(nuevas_categorias)
         return True

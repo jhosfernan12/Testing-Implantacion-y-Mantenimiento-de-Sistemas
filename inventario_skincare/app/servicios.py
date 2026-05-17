@@ -14,6 +14,8 @@ from app.validaciones import (
     validar_entero_positivo,
     validar_nombre_producto,
     validar_precio,
+    validar_stock_minimo,
+    MAX_STOCK,
 )
 
 
@@ -35,7 +37,7 @@ class InventarioServicio:
             with open(self.ruta_historial, "w", encoding="utf-8") as f:
                 json.dump([], f)
 
-    def _registrar_venta(self, nombre_producto, cantidad, precio_unitario):
+    def _registrar_venta(self, codigo_producto, nombre_producto, cantidad, precio_unitario):
         try:
             with open(self.ruta_historial, "r", encoding="utf-8") as f:
                 historial = json.load(f)
@@ -44,6 +46,7 @@ class InventarioServicio:
 
         historial.append({
             "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "codigo": codigo_producto,
             "producto": nombre_producto,
             "cantidad": cantidad,
             "precio_unitario": precio_unitario,
@@ -63,9 +66,11 @@ class InventarioServicio:
     def registrar_producto(self, nombre, precio, stock, categoria="General", stock_minimo=5) -> Producto:
         nombre = validar_nombre_producto(nombre)
         precio = validar_precio(precio)
-        stock = validar_entero_no_negativo(stock, "stock")
+        stock = validar_entero_no_negativo(stock, "stock", MAX_STOCK)
         categoria = validar_categoria(categoria)
-        stock_minimo = validar_entero_no_negativo(stock_minimo, "stock minimo")
+        
+        # MEJORA: validar stock minimo contra stock actual
+        stock_minimo = validar_stock_minimo(stock_minimo, stock)
 
         productos = self.repositorio.leer_productos()
         nombre_normalizado = normalizar_texto(nombre)
@@ -99,7 +104,7 @@ class InventarioServicio:
                 or filtro == normalizar_texto(p.codigo)
             ]
 
-        return sorted(productos, key=lambda p: (normalizar_texto(p.nombre), p.codigo))
+        return sorted(productos, key=lambda p: (p.codigo, normalizar_texto(p.nombre)))
 
     def buscar_producto(self, termino) -> List[Producto]:
         termino = str(termino or "").strip()
@@ -115,7 +120,7 @@ class InventarioServicio:
         return resultados
 
     def actualizar_stock(self, codigo_o_nombre, nuevo_stock) -> Producto:
-        nuevo_stock = validar_entero_no_negativo(nuevo_stock, "nuevo stock")
+        nuevo_stock = validar_entero_no_negativo(nuevo_stock, "nuevo stock", MAX_STOCK)
         productos = self.repositorio.leer_productos()
         indice = self._buscar_indice_exacto(productos, codigo_o_nombre)
         productos[indice].stock = nuevo_stock
@@ -123,15 +128,18 @@ class InventarioServicio:
         return productos[indice]
 
     def aumentar_stock(self, codigo_o_nombre, cantidad) -> Producto:
-        cantidad = validar_entero_positivo(cantidad, "cantidad a aumentar")
+        cantidad = validar_entero_positivo(cantidad, "cantidad a aumentar", MAX_STOCK)
         productos = self.repositorio.leer_productos()
         indice = self._buscar_indice_exacto(productos, codigo_o_nombre)
-        productos[indice].stock += cantidad
+        nuevo_stock = productos[indice].stock + cantidad
+        if nuevo_stock > MAX_STOCK:
+            raise ValueError(f"No se puede superar el limite de {MAX_STOCK} unidades.")
+        productos[indice].stock = nuevo_stock
         self.repositorio.guardar_productos(productos)
         return productos[indice]
 
     def disminuir_stock(self, codigo_o_nombre, cantidad) -> Producto:
-        cantidad = validar_entero_positivo(cantidad, "cantidad a disminuir")
+        cantidad = validar_entero_positivo(cantidad, "cantidad a disminuir", MAX_STOCK)
         productos = self.repositorio.leer_productos()
         indice = self._buscar_indice_exacto(productos, codigo_o_nombre)
         if productos[indice].stock < cantidad:
@@ -143,9 +151,11 @@ class InventarioServicio:
     def actualizar_producto(self, codigo_o_nombre, nombre, precio, stock, categoria="General", stock_minimo=5) -> Producto:
         nombre = validar_nombre_producto(nombre)
         precio = validar_precio(precio)
-        stock = validar_entero_no_negativo(stock, "stock")
+        stock = validar_entero_no_negativo(stock, "stock", MAX_STOCK)
         categoria = validar_categoria(categoria)
-        stock_minimo = validar_entero_no_negativo(stock_minimo, "stock minimo")
+        
+        # MEJORA: validar stock minimo contra stock actual
+        stock_minimo = validar_stock_minimo(stock_minimo, stock)
 
         productos = self.repositorio.leer_productos()
         indice = self._buscar_indice_exacto(productos, codigo_o_nombre)
@@ -178,7 +188,7 @@ class InventarioServicio:
         return eliminado
 
     def vender_producto(self, codigo_o_nombre, cantidad) -> Producto:
-        cantidad = validar_entero_positivo(cantidad, "cantidad a vender")
+        cantidad = validar_entero_positivo(cantidad, "cantidad a vender", MAX_STOCK)
         productos = self.repositorio.leer_productos()
         indice = self._buscar_indice_exacto(productos, codigo_o_nombre)
         producto = productos[indice]
@@ -187,7 +197,8 @@ class InventarioServicio:
             raise ValueError("No hay stock suficiente para realizar la venta.")
 
         producto.stock -= cantidad
-        self._registrar_venta(producto.nombre, cantidad, producto.precio)
+        # MEJORA: registrar venta con codigo del producto
+        self._registrar_venta(producto.codigo, producto.nombre, cantidad, producto.precio)
         self.repositorio.guardar_productos(productos)
         return producto
 
@@ -195,9 +206,10 @@ class InventarioServicio:
         productos = self.repositorio.leer_productos()
 
         if limite is not None and str(limite).strip() != "":
-            limite = validar_entero_no_negativo(limite, "limite de stock")
+            limite = validar_entero_no_negativo(limite, "limite de stock", MAX_STOCK)
             return sorted([p for p in productos if p.stock <= limite], key=lambda p: (p.stock, p.nombre))
 
+        # MEJORA: stock <= stock_minimo ya es alerta de reposicion
         return sorted([p for p in productos if p.stock <= p.stock_minimo], key=lambda p: (p.stock, p.nombre))
 
     def obtener_categorias(self) -> List[str]:

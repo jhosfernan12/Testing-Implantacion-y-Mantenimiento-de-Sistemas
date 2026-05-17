@@ -68,12 +68,17 @@ class InventarioRepositorioJSON:
 
     def generar_codigo(self) -> str:
         productos = self.leer_productos()
-        mayor = 0
+        codigos_existentes = set()
         for producto in productos:
-            codigo = producto.codigo.upper().replace("P", "", 1)
-            if codigo.isdigit():
-                mayor = max(mayor, int(codigo))
-        return f"P{mayor + 1:04d}"
+            codigo = producto.codigo.upper()
+            if codigo.startswith("P") and codigo[1:].isdigit():
+                codigos_existentes.add(int(codigo[1:]))
+        
+        # Buscar el primer codigo disponible desde 1
+        for i in range(1, 10000):
+            if i not in codigos_existentes:
+                return f"P{i:04d}"
+        return "P9999"
 
     def reiniciar_con_datos_prueba(self) -> None:
         self.guardar_productos(self._datos_prueba())
