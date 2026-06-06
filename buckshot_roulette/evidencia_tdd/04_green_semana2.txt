@@ -1,0 +1,53 @@
+test_carga_aleatoria_usa_el_azar_controlado (tests.test_semana2.TestCargaAleatoria.test_carga_aleatoria_usa_el_azar_controlado)
+Con azar mockeado: total=6, reales=2 -> 2 reales y 4 fogueo. ... ok
+test_siempre_al_menos_una_real_y_una_fogueo (tests.test_semana2.TestCargaAleatoria.test_siempre_al_menos_una_real_y_una_fogueo)
+Cada ronda garantiza al menos una bala real y una de fogueo. ... ok
+test_total_de_cartuchos_entre_2_y_8 (tests.test_semana2.TestCargaAleatoria.test_total_de_cartuchos_entre_2_y_8)
+La carga aleatoria siempre produce entre 2 y 8 cartuchos. ... ok
+test_cerveza_descarta_bala_del_frente (tests.test_semana2.TestEfectoItems.test_cerveza_descarta_bala_del_frente) ... ok
+test_lupa_revela_proxima_bala_sin_consumirla (tests.test_semana2.TestEfectoItems.test_lupa_revela_proxima_bala_sin_consumirla) ... ok
+test_pastilla_no_supera_hp_maximo (tests.test_semana2.TestEfectoItems.test_pastilla_no_supera_hp_maximo) ... ok
+test_pastilla_recupera_un_hp (tests.test_semana2.TestEfectoItems.test_pastilla_recupera_un_hp) ... ok
+test_estado_inicial_es_en_curso (tests.test_semana2.TestEstadosYPuntaje.test_estado_inicial_es_en_curso) ... ok
+test_hp_se_reinicia_entre_asaltos (tests.test_semana2.TestEstadosYPuntaje.test_hp_se_reinicia_entre_asaltos) ... ok
+test_partida_termina_al_alcanzar_asaltos (tests.test_semana2.TestEstadosYPuntaje.test_partida_termina_al_alcanzar_asaltos) ... ok
+test_puntaje_aumenta_al_ganar_asalto (tests.test_semana2.TestEstadosYPuntaje.test_puntaje_aumenta_al_ganar_asalto) ... ok
+test_puntaje_inicial_en_cero (tests.test_semana2.TestEstadosYPuntaje.test_puntaje_inicial_en_cero) ... ok
+test_agregar_item_lleno_devuelve_false (tests.test_semana2.TestInventario.test_agregar_item_lleno_devuelve_false) ... ok
+test_inventario_maximo_4_items (tests.test_semana2.TestInventario.test_inventario_maximo_4_items)
+RF-17: el inventario no debe superar los 4 items. ... ok
+test_items_pueden_repetirse (tests.test_semana2.TestInventario.test_items_pueden_repetirse) ... ok
+test_jugador_agrega_item_al_inventario (tests.test_semana2.TestInventario.test_jugador_agrega_item_al_inventario) ... ok
+test_no_existe_botiquin (tests.test_semana2.TestInventario.test_no_existe_botiquin)
+En esta version el Botiquin fue retirado del juego. ... ok
+test_cuarta_ronda_da_4_items (tests.test_semana2.TestProgresionItems.test_cuarta_ronda_da_4_items)
+De la cuarta ronda en adelante se reparten 4 items (tope). ... ok
+test_finalizar_asalto_sin_ganador_lanza_error (tests.test_semana2.TestProgresionItems.test_finalizar_asalto_sin_ganador_lanza_error) ... ok
+test_lupa_con_recamara_vacia_lanza_error (tests.test_semana2.TestProgresionItems.test_lupa_con_recamara_vacia_lanza_error) ... ok
+test_objetivo_invalido_lanza_error (tests.test_semana2.TestProgresionItems.test_objetivo_invalido_lanza_error) ... ok
+test_primera_ronda_sin_items (tests.test_semana2.TestProgresionItems.test_primera_ronda_sin_items)
+La primera ronda del asalto no reparte items. ... ok
+test_progresion_se_reinicia_tras_asalto (tests.test_semana2.TestProgresionItems.test_progresion_se_reinicia_tras_asalto)
+Tras ganar un asalto, el contador de rondas vuelve a 0. ... ok
+test_reparto_descarta_sobrantes_por_tope (tests.test_semana2.TestProgresionItems.test_reparto_descarta_sobrantes_por_tope)
+Repartir mas de 4 items descarta los sobrantes (tope de inventario). ... ok
+test_segunda_ronda_da_2_items (tests.test_semana2.TestProgresionItems.test_segunda_ronda_da_2_items)
+La segunda ronda reparte 2 items a cada jugador. ... ok
+test_tabla_de_progresion (tests.test_semana2.TestProgresionItems.test_tabla_de_progresion)
+Ronda 1 -> 0, ronda 2 -> 2, ronda 3 -> 3, ronda 4+ -> 4 items. ... ok
+test_usar_item_no_poseido_lanza_error (tests.test_semana2.TestProgresionItems.test_usar_item_no_poseido_lanza_error) ... ok
+test_repartir_da_items_a_ambos_jugadores (tests.test_semana2.TestRepartoItems.test_repartir_da_items_a_ambos_jugadores) ... ok
+test_repartir_respeta_cantidad (tests.test_semana2.TestRepartoItems.test_repartir_respeta_cantidad) ... ok
+test_segueta_activa_bandera (tests.test_semana2.TestSegueta.test_segueta_activa_bandera)
+Usar la Segueta deja la bandera de doble dano activa. ... ok
+test_segueta_dobla_dano_en_disparo_real (tests.test_semana2.TestSegueta.test_segueta_dobla_dano_en_disparo_real)
+Con la Segueta activa, una bala real quita 2 HP en vez de 1. ... ok
+test_segueta_no_se_acumula (tests.test_semana2.TestSegueta.test_segueta_no_se_acumula)
+No se puede activar la Segueta dos veces seguidas. ... ok
+test_segueta_se_consume_aunque_salga_fogueo (tests.test_semana2.TestSegueta.test_segueta_se_consume_aunque_salga_fogueo)
+Si tras activar la Segueta sale fogueo, el item se gasta igual. ... ok
+
+----------------------------------------------------------------------
+Ran 33 tests in 0.008s
+
+OK
