@@ -1,0 +1,52 @@
+─────────────────────────── DEMO AUTOMATICA - BUCKSHOT ROULETTE ────────────────────────────
+>> Partida de ejemplo entre 'Adriano' y 'Tatiana' (al mejor de 2).
+                         ┏━━━━━━━━━━━━━ Nueva ronda ━━━━━━━━━━━━━━┓                         
+                         ┃   5 CARTUCHOS    3 REALES  -  2 FOGUEO ┃                         
+                         ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛                         
+
+──────────────────────────────────── BUCKSHOT ROULETTE ─────────────────────────────────────
+         ╭────────── > Adriano < ───────────╮ ╭──────────── Tatiana ─────────────╮          
+         │ HP: # # #  (3/3)                 │ │ HP: # # #  (3/3)                 │          
+         │ Items: Segueta, Lupa             │ │ Items: Pastilla                  │          
+         ╰──────────────────────────────────╯ ╰──────────────────────────────────╯          
+                   Recamara: 5 cartuchos  [ ? ] [ ? ] [ ? ] [ ? ] [ ? ]                     
+                   Puntaje  Adriano: 0   |   Tatiana: 0   (al mejor de 2)                   
+
+>> Adriano usa la Lupa para espiar la proxima bala.
+La Lupa revela: la proxima bala es REAL.
+>> Adriano acopla la Segueta: el proximo disparo hara doble dano.
+Segueta acoplada. El PROXIMO disparo hara DOBLE DANO (si es real; si es fogueo, se gasta 
+igual).
+──────────────────────────────────── BUCKSHOT ROULETTE ─────────────────────────────────────
+         ╭────────── > Adriano < ───────────╮ ╭──────────── Tatiana ─────────────╮          
+         │ HP: # # #  (3/3)                 │ │ HP: # # #  (3/3)                 │          
+         │ Items: (ninguno)                 │ │ Items: Pastilla                  │          
+         ╰──────────────────────────────────╯ ╰──────────────────────────────────╯          
+                   Recamara: 5 cartuchos  [ ? ] [ ? ] [ ? ] [ ? ] [ ? ]                     
+                  ** SEGUETA ACTIVA: el proximo disparo hara DOBLE DANO **                  
+                   Puntaje  Adriano: 0   |   Tatiana: 0   (al mejor de 2)                   
+
+>> Adriano dispara a Tatiana con la Segueta activa.
+BANG! Cartucho REAL con SEGUETA: DOBLE DANO (2 HP)!
+──────────────────────────────────── BUCKSHOT ROULETTE ─────────────────────────────────────
+         ╭──────────── Adriano ─────────────╮ ╭────────── > Tatiana < ───────────╮          
+         │ HP: # # #  (3/3)                 │ │ HP: # - -  (1/3)                 │          
+         │ Items: (ninguno)                 │ │ Items: Pastilla                  │          
+         ╰──────────────────────────────────╯ ╰──────────────────────────────────╯          
+                      Recamara: 4 cartuchos  [ ? ] [ ? ] [ ? ] [ ? ]                        
+                   Puntaje  Adriano: 0   |   Tatiana: 0   (al mejor de 2)                   
+
+>> Tatiana esta herida y usa la Pastilla para recuperar 1 HP.
+Tatiana usa la Pastilla y recupera 1 HP.
+──────────────────────────────────── BUCKSHOT ROULETTE ─────────────────────────────────────
+         ╭──────────── Adriano ─────────────╮ ╭────────── > Tatiana < ───────────╮          
+         │ HP: # # #  (3/3)                 │ │ HP: # # -  (2/3)                 │          
+         │ Items: (ninguno)                 │ │ Items: (ninguno)                 │          
+         ╰──────────────────────────────────╯ ╰──────────────────────────────────╯          
+                      Recamara: 4 cartuchos  [ ? ] [ ? ] [ ? ] [ ? ]                        
+                   Puntaje  Adriano: 0   |   Tatiana: 0   (al mejor de 2)                   
+
+────────────────────────────────────── FIN DE LA DEMO ──────────────────────────────────────
+>> La partida continuaria hasta que alguien gane 2 asaltos.
+
+[captura guardada en evidencia_tdd/06_captura_consola.svg]
